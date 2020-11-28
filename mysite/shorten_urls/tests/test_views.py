@@ -5,10 +5,10 @@ from django.test import TestCase
 
 class IndexViewTest(TestCase):
 
-    url = '/web/index'
+    url = ''
 
     def test_incorrect_url(self):
-        r = self.client.get('/web/not-exists')
+        r = self.client.get('/no/such/path')
 
         self.assertEqual(r.status_code, httplib.NOT_FOUND)
 
