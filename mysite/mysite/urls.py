@@ -18,7 +18,6 @@ from django.urls import include, path, re_path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('<str:short_url>', web_views.ShortUrlRedirectView.as_view()),
     path('', include('shorten_urls.web_urls')),
     re_path(r'^api/v1/short_urls/?', include('shorten_urls.api_urls')),
 ]
