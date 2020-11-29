@@ -8,7 +8,7 @@ from ..utils import b62_encode
 
 class ShortUrlViewTest(TestCase):
 
-    url = '/api/v1/short_urls/'
+    url = '/api/v1/short_urls'
 
     def test_incorrect_url(self):
         url = '/api/v1/short_urls/not-exists'
@@ -28,6 +28,7 @@ class ShortUrlViewTest(TestCase):
         self.assertEqual(r.status_code, httplib.BAD_REQUEST)
         self.assertJSONEqual(r.content, {'url_input': ['Enter a valid URL.']})
 
+    # TODO: mock logic
     def test_success(self):
         url_input = 'https://www.google.com'
         form = {
@@ -43,7 +44,7 @@ class ShortUrlViewTest(TestCase):
             r.content,
             {
                 'data': {
-                    'short_url': b62_encode(obj.id),
+                    'short_url_path': b62_encode(obj.id),
                     'original_url': url_input,
                 },
                 'message': 'success'
