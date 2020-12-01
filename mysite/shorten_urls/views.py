@@ -1,8 +1,9 @@
+from django.http import HttpResponseNotFound, HttpResponseRedirect
 from django.views.generic import RedirectView, TemplateView
-from django.http import HttpResponseRedirect, HttpResponseNotFound
 
+from .logics import decode_short_url
 from .models import ShortUrl
-from .utils import b62_decode
+
 
 class IndexView(TemplateView):
     http_method_names = ['get']
@@ -16,11 +17,8 @@ class ShortUrlRedirectView(RedirectView):
         short_url = kwargs.get('short_url')
         not_found_message = '<h1>404 Not Found</h1>'
 
-        if not 1 <= len(short_url) <= 5:
-            return HttpResponseNotFound(not_found_message)
-
         try:
-            url_id = b62_decode(short_url)
+            url_id = decode_short_url(short_url)
         except (KeyError, ValueError):
             return HttpResponseNotFound(not_found_message)
 

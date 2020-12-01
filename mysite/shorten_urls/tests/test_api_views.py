@@ -44,7 +44,7 @@ class ShortUrlViewTest(TestCase):
             r.content,
             {
                 'data': {
-                    'short_url_path': b62_encode(obj.id),
+                    'short_url_path': obj.short_url_path,
                     'original_url': url_input,
                 },
                 'message': 'success'

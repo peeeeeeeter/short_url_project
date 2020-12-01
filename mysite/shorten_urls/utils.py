@@ -14,7 +14,7 @@ def b62_encode(number):
         raise ValueError('number must be positive integer')
     elif not 1 <= number <= ENCODE_NUM_MAX:
         raise ValueError(
-            'number must be in range 1 to {}'.format(ENCODE_NUM_MAX))
+            'number must be in range 1 to {}, not {}'.format(ENCODE_NUM_MAX, number))
 
     while number:
         result.append(B62_ALPHABET[number % alphabet_Len])

@@ -1,8 +1,7 @@
-from .configs import CRAWL_URL_PREVIEW_TIMEOUT
+from .configs import (CRAWL_URL_PREVIEW_TIMEOUT, SHORT_URL_MAX_LEN,
+                      URL_B62_BASE_NUM, URL_B62_OFFSET_SIZE)
 from .models import ShortUrl
-from .utils import UrlPreivew, b62_encode
-
-from django.conf import settings
+from .utils import UrlPreivew, b62_decode, b62_encode
 
 
 class ShortUrlLogics:
@@ -11,13 +10,17 @@ class ShortUrlLogics:
         self.url = url
 
     def get_or_create_short_url(self):
-        short_url_object, _ = ShortUrl.objects.get_or_create(
-            original_url=self.url
-        )
+        try:
+            short_url_object = ShortUrl.objects.get(
+                original_url=self.url
+            )
+        except ShortUrl.DoesNotExist:
+            short_url_object = ShortUrl.objects.create(
+                original_url=self.url
+            )
 
-        number = short_url_object.id
         return {
-            'short_url_path': b62_encode(number),
+            'short_url_path': short_url_object.short_url_path,
             'original_url': self.url,
         }
 
@@ -42,3 +45,15 @@ class ShortUrlLogics:
         data['preview_data'] = preview_data
 
         return data
+
+
+def decode_short_url(short_url):
+    if len(short_url) != SHORT_URL_MAX_LEN:
+        raise ValueError(
+            'short_url should have length = {}, not {}'.format(
+                SHORT_URL_MAX_LEN, len(short_url))
+        )
+
+    raw_url_number = b62_decode(short_url)
+    real_url_number = (raw_url_number - URL_B62_BASE_NUM) % URL_B62_OFFSET_SIZE
+    return real_url_number
