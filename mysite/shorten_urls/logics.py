@@ -1,23 +1,34 @@
+import hashlib
+
 from .configs import (CRAWL_URL_PREVIEW_TIMEOUT, SHORT_URL_MAX_LEN,
                       URL_B62_BASE_NUM, URL_B62_OFFSET_SIZE)
-from .models import ShortUrl
+from .models import ShortUrl, get_hashed_url_from_original_url
 from .utils import UrlPreivew, b62_decode, b62_encode
 
 
 class ShortUrlLogics:
 
-    def __init__(self, url, *args, **kwargs):
+    def __init__(self, url, hash_algo=None, *args, **kwargs):
         self.url = url
 
+        if hash_algo is None:
+            hash_algo = hashlib.sha256()
+
+        self.hash_algo = hash_algo
+
     def get_or_create_short_url(self):
-        try:
-            short_url_object = ShortUrl.objects.get(
-                original_url=self.url
-            )
-        except ShortUrl.DoesNotExist:
+        hashed_url = get_hashed_url_from_original_url(self.url, self.hash_algo)
+        qs = ShortUrl.objects.filter(hashed_url=hashed_url)
+
+        if not qs.exists():
             short_url_object = ShortUrl.objects.create(
-                original_url=self.url
+                original_url=self.url,
+                hashed_url=hashed_url,
             )
+        elif qs.count() > 1:
+            short_url_object = qs.get(original_url=self.url)
+        else:
+            short_url_object = qs[0]
 
         return {
             'short_url_path': short_url_object.short_url_path,

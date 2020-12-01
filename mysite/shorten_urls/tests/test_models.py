@@ -1,8 +1,9 @@
+import hashlib
 from unittest import mock
 
 from django.test import TestCase
 
-from ..models import ShortUrl
+from ..models import ShortUrl, get_hashed_url_from_original_url
 from ..utils import b62_encode
 
 
@@ -54,12 +55,48 @@ class BaseShortUrlModelTest(TestCase):
         self.assertEqual(short_url.short_url_path, expect_short_url_path)
 
 
+class GetHashedUrlFromOriginalUrlTtest(TestCase):
+
+    def test_success(self):
+        original_url = 'http://www.fake.com'
+
+        default_hash_algo = hashlib.sha256()
+        default_hash_algo.update(original_url.encode('utf-8'))
+
+        expected_hashed_url = default_hash_algo.hexdigest()
+        self.assertEqual(
+            get_hashed_url_from_original_url(original_url),
+            expected_hashed_url[:32]
+        )
+
+
 class ShortUrlModelTest(TestCase):
 
-    def test_create(self):
+    def setUp(self):
+        self.hash_algo = hashlib.sha256()
+
+    @mock.patch('shorten_urls.models.random')
+    def test_create(self, mock_rand):
+        mock_rand.randint.return_value = 1
+
         original_url = 'https://www.google.com'
         short_url = ShortUrl.objects.create(
             original_url=original_url
         )
 
+        self.hash_algo.update(original_url.encode('utf-8'))
+        expected_url = self.hash_algo.hexdigest()[:32]
+
         self.assertEqual(short_url.original_url, original_url)
+        self.assertEqual(short_url.hashed_url, expected_url)
+        self.assertEqual(short_url.random_offset, 1)
+
+    def test_create_by_specifing_hashed_url(self):
+        original_url = 'https://www.google.com'
+        short_url = ShortUrl.objects.create(
+            original_url=original_url,
+            hashed_url='abcdefg'
+        )
+
+        self.assertEqual(short_url.original_url, original_url)
+        self.assertEqual(short_url.hashed_url, 'abcdefg')

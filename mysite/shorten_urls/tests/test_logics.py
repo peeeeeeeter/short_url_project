@@ -12,27 +12,29 @@ class ShortUrlLogicsTest(TestCase):
 
 
     @mock.patch('shorten_urls.models.random')
-    def test_get_or_create_url_success_by_create(self, mock_random):
+    def test_get_or_create_short_url_success_by_create(self, mock_random):
         mock_random.randint.return_value = 1
 
         self.assertEqual(ShortUrl.objects.count(), 0)
 
+        # first short url
         url_1 = 'https://www.google.com'
         logic = ShortUrlLogics(url_1)
         result = logic.get_or_create_short_url()
 
-        expect_short_url_path = b62_encode(2*int(1E8) + 1)
+        expect_short_url_path = b62_encode(2 * int(1E8) + 1)
         self.assertDictEqual(
             result,
             {'short_url_path' : expect_short_url_path, 'original_url': url_1}
         )
         self.assertEqual(ShortUrl.objects.count(), 1)
 
+        # second but different short url
         url_2 = 'https://www.google.com/?key=value'
         logic = ShortUrlLogics(url_2)
         result = logic.get_or_create_short_url()
 
-        expect_short_url_path_2 = b62_encode(2*int(1E8) + 2)
+        expect_short_url_path_2 = b62_encode(2 * int(1E8) + 2)
         self.assertDictEqual(
             result,
             {'short_url_path' : expect_short_url_path_2, 'original_url': url_2}
@@ -40,7 +42,7 @@ class ShortUrlLogicsTest(TestCase):
         self.assertEqual(ShortUrl.objects.count(), 2)
 
     @mock.patch('shorten_urls.models.random')
-    def test_get_or_create_url_success_by_get(self, mock_rand):
+    def test_get_or_create_short_url_success_by_get(self, mock_rand):
         mock_rand.randint.return_value = 1
 
         self.assertEqual(ShortUrl.objects.count(), 0)
@@ -53,13 +55,14 @@ class ShortUrlLogicsTest(TestCase):
         logic = ShortUrlLogics(url)
         result = logic.get_or_create_short_url()
 
-        expect_short_url_path = b62_encode(2*int(1E8) + 1)
+        expect_short_url_path = b62_encode(2 * int(1E8) + 1)
         self.assertDictEqual(
             result,
             {'short_url_path' : expect_short_url_path, 'original_url': url}
         )
         self.assertEqual(ShortUrl.objects.count(), 1)
 
+        # same url
         logic = ShortUrlLogics(url)
         result = logic.get_or_create_short_url()
 
@@ -70,23 +73,54 @@ class ShortUrlLogicsTest(TestCase):
         self.assertEqual(ShortUrl.objects.count(), 1)
 
     @mock.patch('shorten_urls.models.random')
-    def test_get_or_create_url_success_with_larget_id(self, mock_rand):
+    def test_get_or_create_short_url_success_with_larget_id(self, mock_rand):
         mock_rand.randint.return_value = 1
 
         url = 'https://www.google.com'
-        short_url_object = ShortUrl.objects.create(
+        ShortUrl.objects.create(
             id=123456789,
             original_url=url
         )
         logic = ShortUrlLogics(url)
         result = logic.get_or_create_short_url()
 
-        expect_short_url_path = b62_encode(2*int(1E8) + 123456789)
+        expect_short_url_path = b62_encode(2 * int(1E8) + 123456789)
         self.assertDictEqual(
             result,
             {'short_url_path' : expect_short_url_path, 'original_url': url}
         )
         self.assertEqual(ShortUrl.objects.count(), 1)
+
+    @mock.patch('shorten_urls.models.get_hashed_url_from_original_url')
+    @mock.patch('shorten_urls.logics.get_hashed_url_from_original_url')
+    @mock.patch('shorten_urls.models.random')
+    def test_get_or_create_short_url_success_when_hash_collision_occurs(self, mock_rand,
+                                                                        mock_logic_hash,
+                                                                        mock_model_hash):
+        mock_rand.randint.return_value = 1
+        url_1 = 'https://www.google.com'
+        url_2 = 'https://www.fake.com'
+        mock_model_hash.return_value = mock_logic_hash.return_value = 'a' * 32
+
+        ShortUrl.objects.create(
+            original_url=url_1,
+        )
+        ShortUrl.objects.create(
+            original_url=url_2,
+        )
+
+        logic = ShortUrlLogics(url_1)
+        result = logic.get_or_create_short_url()
+
+        expect_short_url_path = b62_encode(2 * int(1E8) + 1)
+        self.assertDictEqual(
+            result,
+            {'short_url_path' : expect_short_url_path, 'original_url': url_1}
+        )
+        self.assertEqual(
+            ShortUrl.objects.filter(hashed_url='a' * 32).count(),
+            2
+        )
 
 
 class DecodeShortUrlTest(TestCase):

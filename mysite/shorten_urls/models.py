@@ -1,9 +1,10 @@
+import hashlib
 import random
 
 from django.db import models
 
-from .configs import (URL_B62_BASE_NUM, URL_B62_OFFSET_RANGE,
-                      URL_B62_OFFSET_SIZE)
+from .configs import (HASHED_URL_LENGTH, URL_B62_BASE_NUM,
+                      URL_B62_OFFSET_RANGE, URL_B62_OFFSET_SIZE)
 from .utils import b62_encode
 
 
@@ -13,7 +14,8 @@ class BaseShortUrlManager(models.Manager):
                *args, **kwargs):
 
         if not random_offset:
-            random_offset = random.randint(URL_B62_OFFSET_RANGE[0], URL_B62_OFFSET_RANGE[1])
+            random_offset = random.randint(
+                URL_B62_OFFSET_RANGE[0], URL_B62_OFFSET_RANGE[1])
 
         return super(BaseShortUrlManager, self).create(
             original_url=original_url,
@@ -44,6 +46,32 @@ class BaseShortUrl(models.Model):
         return b62_encode(self.url_id)
 
 
+def get_hashed_url_from_original_url(original_url, hash_algo=None):
+    if hash_algo is None:
+        hash_algo = hashlib.sha256()
+
+    hash_algo.update(original_url.encode('utf-8'))
+    hashed_url = hash_algo.hexdigest()[:HASHED_URL_LENGTH]
+    return hashed_url
+
+
+class ShortUrlManager(BaseShortUrlManager):
+
+    def create(self, original_url, hashed_url='',
+               *args, **kwargs):
+        if not hashed_url:
+            hashed_url = get_hashed_url_from_original_url(original_url)
+
+        return super(ShortUrlManager, self).create(
+            original_url=original_url,
+            hashed_url=hashed_url,
+            **kwargs
+        )
+
+
 class ShortUrl(BaseShortUrl):
 
     original_url = models.TextField(unique=True)
+    hashed_url = models.CharField(max_length=HASHED_URL_LENGTH, db_index=True)
+
+    objects = ShortUrlManager()
