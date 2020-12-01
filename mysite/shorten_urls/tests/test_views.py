@@ -5,6 +5,7 @@ from django.test import TestCase
 from ..models import ShortUrl
 from ..utils import b62_encode
 
+
 class IndexViewTest(TestCase):
 
     url = ''

@@ -2,11 +2,10 @@ from unittest import mock
 
 from django.test import TestCase
 
+from ..configs import URL_B62_BASE_NUM, URL_B62_OFFSET_SIZE
 from ..logics import ShortUrlLogics, decode_short_url
 from ..models import ShortUrl
-
 from ..utils import b62_encode
-from ..configs import URL_B62_BASE_NUM, URL_B62_OFFSET_SIZE
 
 
 class ShortUrlLogicsTest(TestCase):
