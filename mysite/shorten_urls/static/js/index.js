@@ -3,7 +3,6 @@ $('#short-url-form').submit((event) => {
 
     const input_val = $('#url-input');
     const formData = {'url_input': input_val.val()};
-    console.log(formData);
 
     $.ajax({
         url: '/api/v1/short_urls',
@@ -14,6 +13,8 @@ $('#short-url-form').submit((event) => {
         error: (xhr, status, message) => {
             if (xhr.status === 400) {
                 formSubmitFormError(xhr, status, message);
+            } else if (xhr.status == 403) {
+                formSubmitForbiddenError(xhr, status, message);
             } else {
                 formSubmitGeneralError(xhr, status, message);
             }
@@ -84,7 +85,6 @@ const showUrlPreviewData = (data) => {
     $('#preview-url').text(domain);
     $('#preview-image').attr('src', image);
     $('.preview-url-div').show();
-    console.log('done');
 }
 
 
@@ -103,6 +103,23 @@ const formSubmitFormError = (xhr, status, message) => {
 const formSubmitGeneralError = (xhr, status, message) => {
     console.log(xhr);
     alert(message);
+}
+
+
+const formSubmitForbiddenError = (xhr, status, message) => {
+    let data;
+    try {
+        data = xhr.responseJSON;
+    } catch (error) {
+        return formSubmitGeneralError(xhr, status, message);
+    }
+
+    if (data['message'] == 'Rate limit exceed') {
+        alert('超過使用額度，請稍後再試。');
+        console.log(data['message'])
+    } else {
+        return formSubmitGeneralError(xhr, status, message);
+    }
 }
 
 

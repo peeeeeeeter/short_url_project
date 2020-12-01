@@ -1,11 +1,13 @@
 import http.client as httplib
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
+from ..configs import CREATE_SHORT_URL_RATE_LIMIT
 from ..models import ShortUrl
 from ..utils import b62_encode
 
 
+@override_settings(RATELIMIT_ENABLE=False)
 class ShortUrlViewTest(TestCase):
 
     url = '/api/v1/short_urls'
@@ -50,3 +52,19 @@ class ShortUrlViewTest(TestCase):
                 'message': 'success'
             }
         )
+
+    @override_settings(RATELIMIT_ENABLE=True)
+    def test_rate_limit_exceed(self):
+        url_input = 'https://www.google.com'
+        form = {
+            'url_input': url_input
+        }
+
+        rate_limit = int(CREATE_SHORT_URL_RATE_LIMIT.split('/')[0])
+
+        for i in range(rate_limit):
+            r = self.client.post(self.url, form)
+            self.assertEqual(r.status_code, httplib.OK)
+
+        r = self.client.post(self.url, form)
+        self.assertEqual(r.status_code, httplib.FORBIDDEN)
