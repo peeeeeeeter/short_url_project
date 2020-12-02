@@ -71,7 +71,7 @@ const getUrlPreviewData = (original_url) => {
 
 
 const showUrlPreviewData = (data) => {
-    let {title, description, url, image} = data['data'];
+    let {title, description, url, image_url} = data['data'];
 
     const MAX_TITLE_LENGTH = 64;
     const MAX_DESCRIPTION_LENGTH = 64;
@@ -83,7 +83,7 @@ const showUrlPreviewData = (data) => {
     $('#preview-title').text(title);
     $('#preview-description').text(description);
     $('#preview-url').text(domain);
-    $('#preview-image').attr('src', image);
+    $('#preview-image').attr('src', image_url);
     $('.preview-url-div').show();
 }
 

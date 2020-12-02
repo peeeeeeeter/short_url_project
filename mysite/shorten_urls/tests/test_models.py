@@ -2,8 +2,9 @@ import hashlib
 from unittest import mock
 
 from django.test import TestCase
+from django.utils import timezone
 
-from ..models import ShortUrl, get_hashed_url_from_original_url
+from ..models import ShortUrl, UrlPreviewData, get_hashed_url_from_original_url
 from ..utils import b62_encode
 
 
@@ -100,3 +101,34 @@ class ShortUrlModelTest(TestCase):
 
         self.assertEqual(short_url.original_url, original_url)
         self.assertEqual(short_url.hashed_url, 'abcdefg')
+
+
+class UrlPreviewDataModelTest(TestCase):
+
+    def setUp(self):
+        self.short_url_object = ShortUrl.objects.create(
+            original_url='https://www.fake.com'
+        )
+
+    def test_create_success(self):
+        url_preview_data = UrlPreviewData.objects.create(
+            from_url=self.short_url_object,
+            title='some title',
+            description='some description',
+            url='some url',
+            image_url='some image url'
+        )
+
+        last_update_time = url_preview_data.last_update
+
+        self.assertDictEqual(
+            url_preview_data.as_dict(),
+            {
+                'original_url': 'https://www.fake.com',
+                'title': 'some title',
+                'description': 'some description',
+                'url': 'some url',
+                'image_url': 'some image url',
+                'last_update': last_update_time.strftime('%Y-%m-%d %H:%M:%S')
+            }
+        )

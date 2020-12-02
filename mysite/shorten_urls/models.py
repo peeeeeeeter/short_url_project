@@ -2,6 +2,7 @@ import hashlib
 import random
 
 from django.db import models
+from django.utils import timezone
 
 from .configs import (HASHED_URL_LENGTH, URL_B62_BASE_NUM,
                       URL_B62_OFFSET_RANGE, URL_B62_OFFSET_SIZE)
@@ -75,3 +76,31 @@ class ShortUrl(BaseShortUrl):
     hashed_url = models.CharField(max_length=HASHED_URL_LENGTH, db_index=True)
 
     objects = ShortUrlManager()
+
+    def __str__(self):
+        return self.original_url
+
+
+class UrlPreviewData(models.Model):
+
+    from_url = models.OneToOneField(
+        ShortUrl, on_delete=models.CASCADE,
+        related_name='preview_data',
+    )
+
+    title = models.CharField(max_length=256)
+    description = models.CharField(max_length=500)
+    url = models.URLField(max_length=256)
+    image_url = models.URLField(max_length=256)
+
+    last_update = models.DateTimeField(auto_now=True)
+
+    def as_dict(self):
+        return {
+            'original_url': str(self.from_url),
+            'title': self.title,
+            'description': self.description,
+            'url': self.url,
+            'image_url': self.image_url,
+            'last_update': self.last_update.strftime('%Y-%m-%d %H:%M:%S')
+        }

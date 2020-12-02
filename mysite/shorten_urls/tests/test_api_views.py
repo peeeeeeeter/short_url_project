@@ -1,4 +1,5 @@
 import http.client as httplib
+from unittest import mock
 
 from django.test import TestCase, override_settings
 
@@ -30,7 +31,6 @@ class ShortUrlViewTest(TestCase):
         self.assertEqual(r.status_code, httplib.BAD_REQUEST)
         self.assertJSONEqual(r.content, {'url_input': ['Enter a valid URL.']})
 
-    # TODO: mock logic
     def test_success(self):
         url_input = 'https://www.google.com'
         form = {
@@ -68,3 +68,74 @@ class ShortUrlViewTest(TestCase):
 
         r = self.client.post(self.url, form)
         self.assertEqual(r.status_code, httplib.FORBIDDEN)
+
+
+class ShortUrlPreviewTest(TestCase):
+
+    url = '/api/v1/short_urls/preview'
+
+    def test_incorrect_url(self):
+        url = '/api/v1/short_urls/not-exists'
+        form = {
+            'url_input': 'https://www.google.com'
+        }
+
+        r = self.client.post(url, form)
+        self.assertEqual(r.status_code, httplib.NOT_FOUND)
+
+    def test_form_error(self):
+        form = {
+            'url_input': ''
+        }
+
+        r = self.client.post(self.url, form)
+
+        self.assertEqual(r.status_code, httplib.BAD_REQUEST)
+        self.assertDictEqual(
+            r.json(),
+            {'url_input': ['This field is required.']}
+        )
+
+    @mock.patch('shorten_urls.logics.UrlPreviewDataLogic.get_url_preview_data')
+    def test_get_preview_data_failed(self, mock_get):
+        mock_get.return_value = None
+        form = {
+            'url_input': 'https://www.google.com'
+        }
+
+        r = self.client.post(self.url, form)
+
+        self.assertEqual(r.status_code, httplib.OK)
+        self.assertDictEqual(
+            r.json(),
+            {'message': 'failed', 'data': {}}
+        )
+
+    @mock.patch('shorten_urls.logics.UrlPreviewDataLogic.get_url_preview_data')
+    def test_success(self, mock_get):
+        mock_get.return_value = {
+            'title': 'some title',
+            'description': 'some description',
+            'url': 'some url',
+            'image': 'some image url',
+        }
+        form = {
+            'url_input': 'https://www.google.com'
+        }
+
+        r = self.client.post(self.url, form)
+
+        self.assertEqual(r.status_code, httplib.OK)
+        self.assertDictEqual(
+            r.json(),
+            {
+                'message': 'success',
+                'data': {
+                    'title': 'some title',
+                    'description': 'some description',
+                    'url': 'some url',
+                    'image_url': 'some image url',
+                }
+            }
+        )
+        pass

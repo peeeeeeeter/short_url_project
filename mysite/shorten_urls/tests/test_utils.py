@@ -5,7 +5,7 @@ from django.test import TestCase
 from requests.exceptions import RequestException
 
 from ..configs import B62_ALPHABET
-from ..utils import (BaseUrlPreview, OpenGraphPreviewMixin, UrlPreivew,
+from ..utils import (BaseUrlPreview, OpenGraphPreviewMixin, UrlPreview,
                      b62_decode, b62_encode)
 
 
@@ -242,7 +242,7 @@ class OpenGraphPreviewMixinTest(TestCase):
         self.assertEqual(img, expect_img)
 
 
-class UrlPreivewTest(TestCase):
+class UrlPreviewTest(TestCase):
 
     def setUp(self):
         self.fake_url = 'https://www.fakeurl.com'
@@ -304,7 +304,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_title(), expect_title)
 
@@ -321,7 +321,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_title(), expect_title)
 
@@ -339,7 +339,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_title(), expect_title)
 
@@ -358,7 +358,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_title(), expect_title)
 
@@ -375,7 +375,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_title(), '')
 
@@ -395,7 +395,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_description(), expect_description)
 
@@ -414,7 +414,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_description(), expect_description)
 
@@ -432,7 +432,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_description(), '')
 
@@ -452,7 +452,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_url(), expect_url)
 
@@ -467,7 +467,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_url(), self.fake_url)
 
@@ -488,7 +488,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_img(), expect_img)
 
@@ -507,7 +507,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_img(), expect_img)
 
@@ -525,7 +525,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertEqual(preview.get_img(), '')
 
@@ -540,7 +540,7 @@ class UrlPreivewTest(TestCase):
         )
         mock_request.get.return_value.content = html
 
-        preview = UrlPreivew(self.fake_url)
+        preview = UrlPreview(self.fake_url)
         preview.fire()
         self.assertDictEqual(
             preview.as_dict(),

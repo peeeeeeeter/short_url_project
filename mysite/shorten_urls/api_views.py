@@ -9,7 +9,7 @@ from ratelimit.decorators import ratelimit
 
 from .configs import CREATE_SHORT_URL_RATE_LIMIT
 from .forms import ShortUrlForm, UrlPreviewForm
-from .logics import ShortUrlLogics
+from .logics import ShortUrlLogics, UrlPreviewDataLogic
 from .utils import b62_encode
 
 
@@ -35,7 +35,7 @@ class ShortUrlView(BaseFormView):
 
         logic = ShortUrlLogics(url_input)
 
-        response['data'] = logic.get_or_create_short_url()
+        response['data'] = logic.get_short_url_info()
         response['message'] = 'success'
 
         return JsonResponse(response, status=httplib.OK)
@@ -54,10 +54,20 @@ class ShortUrlPreviewView(BaseFormView):
 
         url_input = form.cleaned_data['url_input']
 
-        logic = ShortUrlLogics(url_input)
+        logic = UrlPreviewDataLogic(url_input)
 
-        response['data'] = logic.get_short_url_preview_data()
-        response['message'] = 'success'
+        info = logic.get_url_preview_data_info()
+        if not info:
+            response['data'] = {}
+            response['message'] = 'failed'
+        else:
+            response['data'] = {
+                'title': info['title'],
+                'description': info['description'],
+                'url': info['url'],
+                'image_url': info['image_url']
+            }
+            response['message'] = 'success'
 
         return JsonResponse(response, status=httplib.OK)
 

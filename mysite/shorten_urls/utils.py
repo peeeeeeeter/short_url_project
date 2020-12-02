@@ -94,7 +94,7 @@ class OpenGraphPreviewMixin:
         return ''
 
 
-class UrlPreivew(OpenGraphPreviewMixin, BaseUrlPreview):
+class UrlPreview(OpenGraphPreviewMixin, BaseUrlPreview):
 
     title_tags = ['title', 'h1', 'h2']
     description_tags = ['p']
