@@ -4,6 +4,8 @@ $('#short-url-form').submit((event) => {
     const input_val = $('#url-input');
     const formData = {'url_input': input_val.val()};
 
+    $('.show-url').hide();
+
     $.ajax({
         url: '/api/v1/short_urls',
         type: 'POST',
@@ -25,7 +27,8 @@ $('#short-url-form').submit((event) => {
 
 
 const formSubmitOnSuccess = (data, status, xhr) => {
-    const show_url = $('#shorted-url');
+    const show_url = $('.shorted-url-div a');
+
     const {
         data: {
             short_url_path,
@@ -42,7 +45,7 @@ const formSubmitOnSuccess = (data, status, xhr) => {
         getUrlPreviewData(original_url);
     }
 
-    show_url.text(short_url);
+    $('#shorted-url').text(short_url);
     show_url.attr('href', short_url);
     show_url.data('originalUrl', original_url);
 }
@@ -85,6 +88,7 @@ const showUrlPreviewData = (data) => {
     $('#preview-url').text(domain);
     $('#preview-image').attr('src', image_url);
     $('.preview-url-div').show();
+    $('.show-url').show();
 }
 
 

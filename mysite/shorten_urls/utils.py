@@ -130,6 +130,9 @@ class UrlPreview(OpenGraphPreviewMixin, BaseUrlPreview):
         if not url:
             url = self.url
 
+        if not url.startswith('http'):
+            url = ''
+
         return url
 
     def get_img(self):
