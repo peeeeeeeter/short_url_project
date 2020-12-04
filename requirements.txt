@@ -5,3 +5,4 @@ requests==2.25.0
 beautifulsoup4==4.4.0
 django-ratelimit==3.0.1
 pytz==2020.4
+django-redis==4.7.0

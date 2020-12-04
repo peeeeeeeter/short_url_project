@@ -1,6 +1,7 @@
 import http.client as httplib
 from unittest import mock
 
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 
 from ..configs import CREATE_SHORT_URL_RATE_LIMIT
@@ -53,23 +54,8 @@ class ShortUrlViewTest(TestCase):
             }
         )
 
-    @override_settings(RATELIMIT_ENABLE=True)
-    def test_rate_limit_exceed(self):
-        url_input = 'https://www.google.com'
-        form = {
-            'url_input': url_input
-        }
 
-        rate_limit = int(CREATE_SHORT_URL_RATE_LIMIT.split('/')[0])
-
-        for i in range(rate_limit):
-            r = self.client.post(self.url, form)
-            self.assertEqual(r.status_code, httplib.OK)
-
-        r = self.client.post(self.url, form)
-        self.assertEqual(r.status_code, httplib.FORBIDDEN)
-
-
+@override_settings(ENABLE_CACHE=False)
 class ShortUrlPreviewTest(TestCase):
 
     url = '/api/v1/short_urls/preview'

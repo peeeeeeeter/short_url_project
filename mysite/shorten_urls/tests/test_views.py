@@ -1,6 +1,6 @@
 import http.client as httplib
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from ..models import ShortUrl
 from ..utils import b62_encode
@@ -22,6 +22,7 @@ class IndexViewTest(TestCase):
         self.assertTemplateUsed(r, 'shorten_urls/index.html')
 
 
+@override_settings(RATELIMIT_ENABLE=False)
 class ShortUrlRedirectViewTest(TestCase):
 
     error_message = '<h1>404 Not Found</h1>'

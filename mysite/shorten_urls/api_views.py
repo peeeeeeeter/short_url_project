@@ -1,6 +1,7 @@
-
 import http.client as httplib
 
+from django.conf import settings
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -8,7 +9,7 @@ from django.views.generic.detail import BaseDetailView
 from django.views.generic.edit import BaseFormView
 from ratelimit.decorators import ratelimit
 
-from .configs import CREATE_SHORT_URL_RATE_LIMIT
+from .configs import CREATE_SHORT_URL_RATE_LIMIT, PREVIEW_URL_REDIS_PREFIX
 from .forms import GetOriginalUrlForm, ShortUrlForm, UrlPreviewForm
 from .logics import ShortUrlLogics, UrlPreviewDataLogic, decode_short_url
 from .models import ShortUrl
@@ -56,6 +57,15 @@ class ShortUrlPreviewView(BaseFormView):
 
         url_input = form.cleaned_data['url_input']
 
+        cache_key = PREVIEW_URL_REDIS_PREFIX + url_input
+
+        if settings.ENABLE_CACHE:
+            cached_preview_data = cache.get(cache_key)
+            if cached_preview_data:
+                response['data'] = cached_preview_data
+                response['message'] = 'success'
+                return JsonResponse(response, status=httplib.OK)
+
         logic = UrlPreviewDataLogic(url_input)
 
         info = logic.get_url_preview_data_info()
@@ -69,6 +79,10 @@ class ShortUrlPreviewView(BaseFormView):
                 'url': info['url'],
                 'image_url': info['image_url']
             }
+
+            if settings.ENABLE_CACHE:
+                cache.set(cache_key, response['data'])
+
             response['message'] = 'success'
 
         return JsonResponse(response, status=httplib.OK)

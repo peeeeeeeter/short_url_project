@@ -62,7 +62,7 @@ const formSubmitOnSuccess = (data, status, xhr) => {
             preview_data,
         }
     } = data;
-    const web_domain = 'http://127.0.0.1:8000/'
+    const web_domain = 'http://54.90.86.112:8000/'
     const short_url = `${web_domain}${short_url_path}`
 
     if (preview_data !== undefined) {
