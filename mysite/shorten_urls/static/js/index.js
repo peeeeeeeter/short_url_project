@@ -117,22 +117,29 @@ const getUrlPreviewData = (original_url) => {
 const showUrlPreviewData = (data, original_url) => {
     console.log('hi');
     let {title, description, url, image_url} = data['data'];
+    let message = data['message'];
+
+    $('#show-original-url').text(original_url);
+
+    if (message === 'failed' || title === '' || title === undefined) {
+        $('#preview-title').text('Not found');
+        $('#preview-description').text('找不到相關網頁');
+        $('.preview-url-div').show();
+        $('.show-url').show();
+        return;
+    }
 
     const MAX_TITLE_LENGTH = 64;
     const MAX_DESCRIPTION_LENGTH = 64;
     const MAX_URL_LENGTH = 64;
 
-    let domain = url.split('/')[2].toUpperCase();
-    domain = domain.substr(0, MAX_URL_LENGTH);
-
     if (image_url.startsWith('http')) {
         $('#preview-image').attr('src', image_url);
     }
 
-    $('#show-original-url').text(original_url);
     $('#preview-title').text(title);
     $('#preview-description').text(description);
-    $('#preview-url').text(domain);
+    $('#preview-url').text(url);
     $('.preview-url-div').show();
     $('.show-url').show();
 }
