@@ -4,12 +4,14 @@ import http.client as httplib
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic.detail import BaseDetailView
 from django.views.generic.edit import BaseFormView
 from ratelimit.decorators import ratelimit
 
 from .configs import CREATE_SHORT_URL_RATE_LIMIT
-from .forms import ShortUrlForm, UrlPreviewForm
-from .logics import ShortUrlLogics, UrlPreviewDataLogic
+from .forms import GetOriginalUrlForm, ShortUrlForm, UrlPreviewForm
+from .logics import ShortUrlLogics, UrlPreviewDataLogic, decode_short_url
+from .models import ShortUrl
 from .utils import b62_encode
 
 
@@ -73,3 +75,35 @@ class ShortUrlPreviewView(BaseFormView):
 
     def form_invalid(self, form):
         return JsonResponse(form.errors, status=httplib.BAD_REQUEST)
+
+
+class GetOriginalUrlView(BaseDetailView):
+
+    def get_object(self):
+        form = GetOriginalUrlForm(self.request.GET)
+
+        if form.is_valid():
+            short_url = form.cleaned_data['short_url']
+            url_id = decode_short_url(short_url)
+
+            short_url_object = ShortUrl.objects.filter(id=url_id)
+            return short_url_object.first()
+
+        return
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        response = {}
+
+        if self.object:
+            response['data'] = {
+                'original_url': self.object.original_url,
+                'short_url_path': self.object.short_url_path,
+            }
+            response['message'] = 'success'
+            return JsonResponse(response, status=httplib.OK)
+        else:
+            response['data'] = {}
+            response['message'] = 'failed'
+
+            return JsonResponse(response, status=httplib.BAD_REQUEST)

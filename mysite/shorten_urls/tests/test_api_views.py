@@ -138,4 +138,91 @@ class ShortUrlPreviewTest(TestCase):
                 }
             }
         )
-        pass
+
+
+class GetOriginalUrlViewTest(TestCase):
+
+    url = '/api/v1/short_urls/original_url'
+
+    def setUp(self):
+        self.short_url_object = ShortUrl.objects.create(
+            original_url='https://www.fake.com'
+        )
+
+    def test_incorrect_url(self):
+        form = {
+            'short_url': self.short_url_object.short_url_path
+        }
+        r = self.client.get('/api/v1/short_urls/xxxx', form)
+
+        self.assertEqual(r.status_code, httplib.NOT_FOUND)
+
+    def test_form_invalid_too_long(self):
+        form = {
+            'short_url': 'a' * 4
+        }
+
+        r = self.client.get(self.url, form)
+
+        self.assertEqual(r.status_code, httplib.BAD_REQUEST)
+        self.assertEqual(
+            r.json(),
+            {'message': 'failed', 'data': {}}
+        )
+
+    def test_form_invalid_too_short(self):
+        form = {
+            'short_url': 'a'
+        }
+
+        r = self.client.get(self.url, form)
+
+        self.assertEqual(r.status_code, httplib.BAD_REQUEST)
+        self.assertEqual(
+            r.json(),
+            {'message': 'failed', 'data': {}}
+        )
+
+    def test_form_invalid_invalid_chars(self):
+        form = {
+            'short_url': 'abcd@'
+        }
+
+        r = self.client.get(self.url, form)
+
+        self.assertEqual(r.status_code, httplib.BAD_REQUEST)
+        self.assertEqual(
+            r.json(),
+            {'message': 'failed', 'data': {}}
+        )
+
+    def test_get_get_object_not_found(self):
+        form = {
+            'short_url': 'abcde'
+        }
+
+        r = self.client.get(self.url, form)
+
+        self.assertEqual(r.status_code, httplib.BAD_REQUEST)
+        self.assertEqual(
+            r.json(),
+            {'message': 'failed', 'data': {}}
+        )
+
+    def test_get_success(self):
+        form = {
+            'short_url': self.short_url_object.short_url_path
+        }
+        r = self.client.get(self.url, form)
+
+        self.assertEqual(r.status_code, httplib.OK)
+        self.assertEqual(
+            r.json(),
+            {
+                'message': 'success',
+                'data': {
+                    'original_url': 'https://www.fake.com',
+                    'short_url_path': self.short_url_object.short_url_path,
+                }
+            }
+        )

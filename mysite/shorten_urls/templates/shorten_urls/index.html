@@ -21,11 +21,11 @@
                     <form id="short-url-form">
                         <div class="form-group">
                             <label for="url-input">請輸入網址: </label>
-                            <input id="url-input" class="form-control" type="url"/>
+                            <input id="url-input" class="form-control"/>
                         </div>
                         <div class="form-row justify-content-center">
                             <button type="submit" class="btn btn-primary">產生短網址</button>
-                            <button type="reset" class="btn btn-secondary">重新輸入</button>
+                            <button type="button" class="btn btn-secondary" id="get-original-url">取得短網址預覽</button>
                         </div>
                     </form>
                 </div>
@@ -35,6 +35,7 @@
                 <div class="shorted-url-div">
                     <a href="#">
                         <p id="shorted-url"></p>
+                        <p id="show-original-url"></p>
                         <div class="preview-url-div">
                             <div>
                                 <img id="preview-image">

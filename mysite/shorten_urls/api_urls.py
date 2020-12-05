@@ -5,5 +5,5 @@ from . import api_views
 urlpatterns = [
     re_path(r'^$', api_views.ShortUrlView.as_view()),
     re_path(r'^preview$', api_views.ShortUrlPreviewView.as_view()),
-
+    re_path(r'^original_url$', api_views.GetOriginalUrlView.as_view()),
 ]
