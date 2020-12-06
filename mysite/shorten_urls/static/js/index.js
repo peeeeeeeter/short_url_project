@@ -4,6 +4,7 @@ $('#short-url-form').submit((event) => {
     const input_val = $('#url-input');
     const formData = {'url_input': input_val.val()};
 
+    clearPreviewDiv();
     $('.show-url').hide();
 
     $.ajax({
@@ -33,6 +34,7 @@ $('#get-original-url').on('click', (event) => {
     const input_val = $('#url-input');
     const formData = {'short_url': input_val.val()};
 
+    clearPreviewDiv();
     $('.show-url').hide();
 
     $.ajax({
@@ -129,24 +131,9 @@ const showUrlPreviewData = (data, original_url) => {
         return;
     }
 
-    const MAX_TITLE_LENGTH = 64;
-    const MAX_DESCRIPTION_LENGTH = 64;
-    const MAX_URL_LENGTH = 64;
 
     if (image_url.startsWith('http')) {
         $('#preview-image').attr('src', image_url);
-    }
-
-    if (title.length > MAX_TITLE_LENGTH) {
-        title = title.substr(0, MAX_TITLE_LENGTH) + '...';
-    }
-
-    if (description.lenght > MAX_DESCRIPTION_LENGTH) {
-        description = description.substr(0, MAX_DESCRIPTION_LENGTH) +　'...';
-    }
-
-    if (url.length > MAX_URL_LENGTH) {
-        url = url.substr(0, MAX_URL_LENGTH) + '...';
     }
 
     $('#preview-title').text(title);
@@ -194,3 +181,12 @@ const formSubmitForbiddenError = (xhr, status, message) => {
 
 const getUrlPreviewFormError = formSubmitFormError;
 const getUrlPreviewGeneralError = formSubmitGeneralError
+
+const clearPreviewDiv = () => {
+    $('#shorted-url').text('');
+    $('#show-original-rul').text('');
+    $('#preview-image').attr('src', '');
+    $('#preview-url').text('');
+    $('#preview-title').text('');
+    $('#preview-description').text('');
+}
