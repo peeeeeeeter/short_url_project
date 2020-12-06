@@ -1,3 +1,5 @@
+import http.client as httplib
+
 import requests
 from bs4 import BeautifulSoup
 from requests.exceptions import RequestException
@@ -53,6 +55,12 @@ class BaseUrlPreview:
             res = requests.get(self.url,
                 timeout=self.timeout, headers=self.headers)
         except RequestException:
+            return
+
+        if res.status_code >= httplib.BAD_REQUEST:
+            return
+
+        if 'text/html' not in res.headers['Content-Type']:
             return
 
         self._success = True

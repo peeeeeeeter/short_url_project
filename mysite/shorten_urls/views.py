@@ -1,5 +1,5 @@
-from django.core.cache import cache
 from django.conf import settings
+from django.core.cache import cache
 from django.http import HttpResponseNotFound, HttpResponseRedirect
 from django.views.generic import RedirectView, TemplateView
 

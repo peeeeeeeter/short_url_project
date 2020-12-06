@@ -1,9 +1,11 @@
+import http.client as httplib
 from unittest import mock
 
 from bs4 import BeautifulSoup
 from django.test import TestCase
 from requests.exceptions import RequestException
 
+from . import MockResposne
 from ..configs import B62_ALPHABET
 from ..utils import (BaseUrlPreview, OpenGraphPreviewMixin, UrlPreview,
                      b62_decode, b62_encode)
@@ -66,7 +68,7 @@ class BaseUrlPreviewTest(TestCase):
     url = 'https://www.google.com'
 
     @mock.patch('shorten_urls.utils.requests')
-    def test_fire_request_failed(self, mock_request):
+    def test_fire_request_failed_by_exception(self, mock_request):
         mock_request.get.side_effect = RequestException
 
         r = BaseUrlPreview(self.url)
@@ -74,8 +76,29 @@ class BaseUrlPreviewTest(TestCase):
         self.assertFalse(r.success)
 
     @mock.patch('shorten_urls.utils.requests')
+    def test_fire_request_failed_by_not_support_content_type(self, mock_request):
+        mock_response_val = MockResposne(headers={
+            'Content-Type': 'application/pdf'
+        })
+        mock_request.get.return_value = mock_response_val
+
+        r = BaseUrlPreview(self.url)
+        r.fire()
+
+        self.assertFalse(r.success)
+
+    @mock.patch('shorten_urls.utils.requests')
+    def test_fire_request_failed_by_target_server_error(self, mock_request):
+        mock_response_val = MockResposne(status_code=httplib.BAD_REQUEST)
+        mock_request.get.return_value = mock_response_val
+        r = BaseUrlPreview(self.url)
+        r.fire()
+
+        self.assertFalse(r.success)
+
+    @mock.patch('shorten_urls.utils.requests')
     def test_fire_request_success(self, mock_request):
-        mock_request.get.return_value.content = '''
+        content = '''
         <html>
             <head>
                 <title>The Dormouse's story</title>
@@ -88,8 +111,12 @@ class BaseUrlPreviewTest(TestCase):
             </p>
             </body>
         '''
+        mock_response_val = MockResposne(content=content)
+        mock_request.get.return_value = mock_response_val
+
         r = BaseUrlPreview(self.url)
         r.fire()
+
         self.assertTrue(r.success)
 
 
@@ -288,6 +315,8 @@ class UrlPreviewTest(TestCase):
         self.p_2 = '<p>This is the second p tag</p>'
         self.img_2 = '<img src="www.second.url.com">'
 
+        self.mock_response_val = MockResposne()
+
     @mock.patch('shorten_urls.utils.requests')
     def test_get_title_without_fallback(self, mock_request):
         expect_title = 'Facebook'
@@ -302,7 +331,9 @@ class UrlPreviewTest(TestCase):
             h1_1=self.h1_1, h2_1=self.h2_1, p_1=self.p_1, img_1=self.img_1,
             h1_2=self.h1_2, h2_2=self.h2_2, p_2=self.p_2, img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -319,7 +350,9 @@ class UrlPreviewTest(TestCase):
             h1_1=self.h1_1, h2_1=self.h2_1, p_1=self.p_1, img_1=self.img_1,
             h1_2=self.h1_2, h2_2=self.h2_2, p_2=self.p_2, img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -337,7 +370,9 @@ class UrlPreviewTest(TestCase):
             h1_1=h1_1, h2_1=self.h2_1, p_1=self.p_1, img_1=self.img_1,
             h1_2=self.h1_2, h2_2=self.h2_2, p_2=self.p_2, img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -356,7 +391,9 @@ class UrlPreviewTest(TestCase):
             p_1=self.p_1, img_1=self.img_1, h1_2='',
             h2_2=self.h2_2, p_2=self.p_2, img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -373,7 +410,9 @@ class UrlPreviewTest(TestCase):
             h1_2='', h2_2='',
             p_2=self.p_2, img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -393,7 +432,9 @@ class UrlPreviewTest(TestCase):
             h1_1=self.h1_1, h2_1=self.h2_1, p_1=self.p_1, img_1=self.img_1,
             h1_2=self.h1_2, h2_2=self.h2_2, p_2=self.p_2, img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -412,7 +453,9 @@ class UrlPreviewTest(TestCase):
             p_1=p_1,
             img_1=self.img_1, h1_2=self.h1_2, h2_2=self.h2_2, p_2=self.p_2, img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -430,7 +473,9 @@ class UrlPreviewTest(TestCase):
             p_2='',
             img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -450,7 +495,9 @@ class UrlPreviewTest(TestCase):
             h1_1=self.h1_1, h2_1=self.h2_1, p_1=self.p_1, img_1=self.img_1,
             h1_2=self.h1_2, h2_2=self.h2_2, p_2=self.p_2, img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -465,7 +512,10 @@ class UrlPreviewTest(TestCase):
             h1_1=self.h1_1, h2_1=self.h2_1, p_1=self.p_1, img_1=self.img_1,
             h1_2=self.h1_2, h2_2=self.h2_2, p_2=self.p_2, img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
+
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -486,7 +536,9 @@ class UrlPreviewTest(TestCase):
             h1_1=self.h1_1, h2_1=self.h2_1, p_1=self.p_1, img_1=self.img_1,
             h1_2=self.h1_2, h2_2=self.h2_2, p_2=self.p_2, img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -505,7 +557,9 @@ class UrlPreviewTest(TestCase):
             img_1=img_1,
             h1_2=self.h1_2, h2_2=self.h2_2, p_2=self.p_2, img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -523,7 +577,9 @@ class UrlPreviewTest(TestCase):
             h1_2=self.h1_2, h2_2=self.h2_2, p_2=self.p_2,
             img_2=''
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()
@@ -538,7 +594,9 @@ class UrlPreviewTest(TestCase):
             h1_1=self.h1_1, h2_1=self.h2_1, p_1=self.p_1, img_1=self.img_1,
             h1_2=self.h1_2, h2_2=self.h2_2, p_2=self.p_2, img_2=self.img_2
         )
-        mock_request.get.return_value.content = html
+
+        self.mock_response_val.content = html
+        mock_request.get.return_value = self.mock_response_val
 
         preview = UrlPreview(self.fake_url)
         preview.fire()

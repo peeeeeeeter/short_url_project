@@ -122,8 +122,8 @@ const showUrlPreviewData = (data, original_url) => {
     $('#show-original-url').text(original_url);
 
     if (message === 'failed' || title === '' || title === undefined) {
-        $('#preview-title').text('Not found');
-        $('#preview-description').text('找不到相關網頁');
+        $('#preview-title').text('');
+        $('#preview-description').text('無法呈現相關頁面');
         $('.preview-url-div').show();
         $('.show-url').show();
         return;
@@ -135,6 +135,18 @@ const showUrlPreviewData = (data, original_url) => {
 
     if (image_url.startsWith('http')) {
         $('#preview-image').attr('src', image_url);
+    }
+
+    if (title.length > MAX_TITLE_LENGTH) {
+        title = title.substr(0, MAX_TITLE_LENGTH) + '...';
+    }
+
+    if (description.lenght > MAX_DESCRIPTION_LENGTH) {
+        description = description.substr(0, MAX_DESCRIPTION_LENGTH) +　'...';
+    }
+
+    if (url.length > MAX_URL_LENGTH) {
+        url = url.substr(0, MAX_URL_LENGTH) + '...';
     }
 
     $('#preview-title').text(title);

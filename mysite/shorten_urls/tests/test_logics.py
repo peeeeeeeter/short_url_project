@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.utils import timezone
 from requests.exceptions import RequestException
 
+from . import MockResposne
 from ..configs import URL_B62_BASE_NUM, URL_B62_OFFSET_SIZE
 from ..logics import ShortUrlLogics, UrlPreviewDataLogic, decode_short_url
 from ..models import ShortUrl, UrlPreviewData
@@ -188,7 +189,8 @@ class UrlPreviewDataLogicTest(TestCase):
             meta_url=meta_url,
             meta_image=meta_img
         )
-        mock_requests.get.return_value.content = html
+
+        mock_requests.get.return_value = MockResposne(content=html)
 
         url_preview_logic = UrlPreviewDataLogic(self.url)
         expect_data = {
